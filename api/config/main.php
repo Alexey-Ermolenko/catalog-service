@@ -9,15 +9,19 @@ $params = array_merge(
 
 return [
     'id' => 'app-api',
-    'basePath' => dirname(__DIR__),    
+    'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'modules' => [
         'v1' => [
             'basePath' => '@app/modules/v1',
-            'class' => 'api\modules\v1\Module'
+            'class' => 'api\modules\v1\Module',
+            'controllerNamespace' => 'api\modules\v1\controllers',
         ]
     ],
-    'components' => [        
+	'aliases' => [
+        '@api' => dirname(dirname(__DIR__)) . '/api',
+    ],
+    'components' => [
         'user' => [
             'identityClass' => 'common\models\User',
             'enableAutoLogin' => false,
@@ -37,14 +41,16 @@ return [
             'showScriptName' => false,
             'rules' => [
                 [
-                    'class' => 'yii\rest\UrlRule', 
-                    'controller' => 'v1/country',
+                    'class' => \yii\rest\UrlRule::class,
+                    'controller' => [
+                        'v1/rubric',
+                        'v1/company'
+                    ],
                     'tokens' => [
                         '{id}' => '<id:\\w+>'
                     ]
-                    
                 ]
-            ],        
+            ],
         ]
     ],
     'params' => $params,
