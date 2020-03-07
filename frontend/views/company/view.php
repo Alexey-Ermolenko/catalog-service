@@ -7,7 +7,7 @@ use yii\widgets\DetailView;
 /* @var $this yii\web\View */
 /* @var $model common\models\Company */
 
-$this->title = $model->name;
+$this->title                   = $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Companies'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 YiiAsset::register($this);
@@ -16,7 +16,7 @@ YiiAsset::register($this);
 
     <h1><?= Html::encode($this->title) ?></h1>
     <?= DetailView::widget([
-        'model' => $model,
+        'model'      => $model,
         'attributes' => [
             'id',
             'name',

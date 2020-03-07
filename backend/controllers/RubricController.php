@@ -1,54 +1,38 @@
 <?php
 
-namespace app\controllers;
+
+namespace backend\controllers;
 
 use Yii;
 use common\models\Rubric;
-use yii\data\ActiveDataProvider;
-//use backend\controllers\AppController;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-
-use yii\web\Controller;
 
 /**
  * RubricController implements the CRUD actions for Rubric model.
  */
-class RubricController extends Controller
+class RubricController extends AppController
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'delete' => ['POST'],
-                ],
-            ],
-        ];
-    }
-
     /**
      * Lists all Rubric models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Rubric::find(),
-        ]);
+        $searchModel  = new Rubric();
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
+            'searchModel'  => $searchModel,
+            'model'        => $searchModel,
             'dataProvider' => $dataProvider,
         ]);
     }
 
     /**
      * Displays a single Rubric model.
+     *
      * @param integer $id
+     *
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
@@ -68,7 +52,21 @@ class RubricController extends Controller
     {
         $model = new Rubric();
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        if (!empty(Yii::$app->request->post('Rubric'))) {
+            $post            = Yii::$app->request->post('Rubric');
+            $model->name     = $post['name'];
+            $model->position = $post['position'];
+            $parent_id       = $post['parentId'];
+
+            if (empty($parent_id)) {
+                $model->makeRoot();
+            } else {
+                $parent = Rubric::findOne($parent_id);
+                $model->appendTo($parent);
+            }
+
+            $model->save();
+
             return $this->redirect(['view', 'id' => $model->id]);
         }
 
@@ -80,7 +78,9 @@ class RubricController extends Controller
     /**
      * Updates an existing Rubric model.
      * If update is successful, the browser will be redirected to the 'view' page.
+     *
      * @param integer $id
+     *
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
      */
@@ -88,8 +88,27 @@ class RubricController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if (!empty(Yii::$app->request->post('Rubric'))) {
+            $post = Yii::$app->request->post('Rubric');
+
+            $model->name     = $post['name'];
+            $model->position = $post['position'];
+            $parent_id       = $post['parentId'];
+
+            if ($model->save()) {
+                if (empty($parent_id)) {
+                    if (!$model->isRoot()) {
+                        $model->makeRoot();
+                    }
+                } else {
+                    if ($model->id != $parent_id) {
+                        $parent = Rubric::findOne($parent_id);
+                        $model->appendTo($parent);
+                    }
+                }
+
+                return $this->redirect(['view', 'id' => $model->id]);
+            }
         }
 
         return $this->render('update', [
@@ -100,13 +119,24 @@ class RubricController extends Controller
     /**
      * Deletes an existing Rubric model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
+     *
      * @param integer $id
+     *
      * @return mixed
      * @throws NotFoundHttpException if the model cannot be found
+     * @throws \Throwable
+     * @throws \yii\db\StaleObjectException
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id);
+
+        if ($model->isRoot()) {
+            $model->deleteWithChildren();
+        } else {
+            $model->delete();
+        }
+
 
         return $this->redirect(['index']);
     }
@@ -114,7 +144,9 @@ class RubricController extends Controller
     /**
      * Finds the Rubric model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
+     *
      * @param integer $id
+     *
      * @return Rubric the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */

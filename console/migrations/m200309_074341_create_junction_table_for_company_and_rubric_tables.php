@@ -9,7 +9,7 @@ use yii\db\Migration;
  * - `{{%company}}`
  * - `{{%rubric}}`
  */
-class m200303_050533_create_junction_table_for_company_and_rubric_tables extends Migration
+class m200309_074341_create_junction_table_for_company_and_rubric_tables extends Migration
 {
     /**
      * {@inheritdoc}
@@ -18,7 +18,7 @@ class m200303_050533_create_junction_table_for_company_and_rubric_tables extends
     {
         $this->createTable('{{%company_rubric}}', [
             'company_id' => $this->integer(),
-            'rubric_id'  => $this->integer(),
+            'rubric_id' => $this->integer(),
             'PRIMARY KEY(company_id, rubric_id)',
         ]);
 

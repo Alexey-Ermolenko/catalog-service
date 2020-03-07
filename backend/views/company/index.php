@@ -1,12 +1,15 @@
 <?php
 
+use common\models\Rubric;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use yii\widgets\Pjax;
+
 /* @var $this yii\web\View */
 /* @var $dataProvider yii\data\ActiveDataProvider */
+/* @var $searchModel  \common\models\Company */
 
-$this->title = Yii::t('app', 'Companies');
+$this->title                   = Yii::t('app', 'Companies');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="company-index">
@@ -21,7 +24,9 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <?= GridView::widget([
         'dataProvider' => $dataProvider,
-        'columns' => [
+        'filterModel'  => $searchModel,
+        'layout'       => "{sorter}\n{pager}\n{summary}\n{items}",
+        'columns'      => [
             ['class' => 'yii\grid\SerialColumn'],
 
             'id',
@@ -29,9 +34,20 @@ $this->params['breadcrumbs'][] = $this->title;
             'deletion_mark:boolean',
             'latitude',
             'longitude',
-            //'created_at',
-            //'updated_at',
+            'created_at',
+            'updated_at',
+            [
+                'attribute' => 'rubrics.name',
+                'label'     => Yii::t('app', 'Rubric'),
+                'content'   => function ($data) {
+                    $rubrics = [];
+                    foreach ($data->rubrics as $rubric) {
+                        $rubrics[] = $rubric->name;
+                    }
 
+                    return implode(', ', $rubrics);
+                },
+            ],
             ['class' => 'yii\grid\ActionColumn'],
         ],
     ]); ?>

@@ -36,6 +36,8 @@ $this->params['breadcrumbs'][] = $this->title;
             'longitude',
             'created_at',
             'updated_at',
+            'rubrics.id',
+            'rubrics.name',
         ],
     ]) ?>
 

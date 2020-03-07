@@ -12,8 +12,7 @@ use yii\web\Response;
  */
 class CompanyController extends ActiveController
 {
-    //public $modelClass = 'api\modules\v1\models\Company';
-    public $modelClass = '@app\common\models\Company';
+    public $modelClass = 'api\modules\v1\models\Company';
 
     public function actions()
     {
@@ -27,7 +26,7 @@ class CompanyController extends ActiveController
     public function prepareDataProvider()
     {
         \Yii::$app->response->format = Response::FORMAT_JSON;
-        $search                      = new Company();
+        $search                      = new $this->modelClass;
 
         return $search->search(\Yii::$app->request->getQueryParams());
     }

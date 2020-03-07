@@ -8,9 +8,10 @@ use yii\helpers\HtmlPurifier;
 <div class="company-item">
     <?= Html::a(Html::encode($model->name), ['view', 'id' => $model->id]); ?>
     <?= HTml::tag('br'); ?>
-    <?= Html::beginTag('div', ['style' => 'margin-left: 40px']); ?>
     <?php foreach ($model->rubrics as $rubric): ?>
-        <small><?= Html::encode($rubric->name) . ' | ' ?></small>
+        <?= Html::beginTag('small') ?>
+        <?= Html::a(Html::encode($rubric->name), ['rubric/view', 'id' => $rubric->id]) ?>
+        <?= Html::endTag('small') ?>
     <?php endforeach; ?>
-    <?= Html::endTag('div'); ?>
+    <?= HTml::tag('hr'); ?>
 </div>

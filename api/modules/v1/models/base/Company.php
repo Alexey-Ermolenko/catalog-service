@@ -1,6 +1,6 @@
 <?php
 
-namespace common\models\base;
+namespace api\modules\v1\models\base;
 
 use Yii;
 
@@ -34,7 +34,7 @@ class Company extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            //[['name'], 'required'], TODO override attr
+            [['name'], 'required'],
             [['deletion_mark'], 'boolean'],
             [['created_at', 'updated_at'], 'safe'],
             [['name', 'latitude', 'longitude'], 'string', 'max' => 255],

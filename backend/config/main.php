@@ -12,6 +12,7 @@ return [
     'controllerNamespace' => 'backend\controllers',
     'bootstrap'           => ['log'],
     'modules'             => [],
+    'homeUrl'             => '/admin',
     'components'          => [
         'request'      => [
             'csrfParam' => '_csrf-backend',
@@ -42,8 +43,12 @@ return [
             'enablePrettyUrl' => true,
             'showScriptName'  => false,
             'rules'           => [
-                ''         => 'site/index',
-                '<action>' => 'site/<action>',
+//                ''         => 'site/index',
+//                '<action>' => 'site/<action>',
+//                'rubric'   => 'admin/rubric/index',
+//                '<action>' => 'admin/rubric/<action>',
+//                'company'  => 'admin/company/index',
+//                '<action>' => 'admin/company/<action>',
             ],
         ],
         'assetManager' => [

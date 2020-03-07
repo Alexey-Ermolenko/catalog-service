@@ -2,97 +2,156 @@
 
 namespace common\models;
 
-use yii\db\ActiveQuery;
-use yii\helpers\Url;
+use Yii;
+use creocoder\nestedsets\NestedSetsBehavior;
+use yii\data\ActiveDataProvider;
 
 class Rubric extends base\Rubric
 {
-    const ROOT_RUBRIC = 1;
+    const FIRST_LEVEL = 1;
+    const LAST_LEVEL  = 4;
 
     /**
-     * @return ActiveQuery
-     */
-    public function getRubricsWithSortByName()
-    {
-        return $this->hasMany(Rubric::className(), ['parent_id' => 'id'])->orderBy('name');
-    }
-
-    /**
-     * @return array
-     */
-    private static function getMenuItems()
-    {
-        $items = [];
-        $resultAll = self::find()->where(['=', 'id', 1])->all();
-
-
-
-       // $resultAll = self::findAll()->where(['!=', 'id', static::ROOT_RUBRIC]);
-
-        //$resultAll = self::findAll(['!=', 'id', static::ROOT_RUBRIC]);
-
-        foreach ($resultAll as $result) {
-            if (empty($items[$result->parent_id])) {
-                $items[$result->parent_id] = [];
-            }
-
-            $items[$result->parent_id][] = [
-                'id'            => $result->id,
-                'name'          => $result->name,
-                'parent_id'     => $result->parent_id,
-                'company_count' => $result->getCompanies()->count(),
-            ];
-        }
-
-        return $items;
-    }
-
-    /**
-     * @param int $parent_id
+     * @param int $n
      *
+     * @return string
+     */
+    public static function label($n = 1)
+    {
+        return $n == 1 ? Yii::t('app', 'Rubric') : Yii::t('app', 'Rubrics');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function behaviors()
+    {
+        return array_merge(parent::behaviors(), [
+            'tree' => [
+                'class'          => NestedSetsBehavior::class,
+                'treeAttribute'  => 'tree',
+                'leftAttribute'  => 'lft',
+                'rightAttribute' => 'rgt',
+                'depthAttribute' => 'depth',
+            ],
+        ]);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function rules()
+    {
+        return [
+            [['name'], 'required'],
+            [['position'], 'default', 'value' => 0],
+            [['tree', 'lft', 'rgt', 'depth', 'position'], 'integer'],
+            [['name'], 'string', 'max' => 255],
+        ];
+    }
+
+    /**
      * @return array
      */
-    public static function viewMenuItems($parent_id = 0)
+    public function transactions()
     {
-        $arrItems = self::getMenuItems();
+        return [
+            self::SCENARIO_DEFAULT => self::OP_ALL,
+        ];
+    }
 
-        if (empty($arrItems[$parent_id])) {
-            return [];
+    public static function find()
+    {
+        return new RubricQuery(get_called_class());
+    }
+
+    /**
+     * Get parent's ID
+     * @return \yii\db\ActiveQuery
+     */
+    public function getParentId()
+    {
+        $parent = $this->parent;
+
+        return $parent ? $parent->id : null;
+    }
+
+    /**
+     * Get parent's node
+     * @return \yii\db\ActiveQuery
+     */
+    public function getParent()
+    {
+        return $this->parents(1)->one();
+    }
+
+    /**
+     * Get a full tree as a list, except the node and its children
+     *
+     * @param integer $node_id node's ID
+     *
+     * @return array array of node
+     */
+    public static function getTree($node_id = 0)
+    {
+        $children = [];
+
+        if (!empty($node_id)) {
+            $children = array_merge(
+                self::findOne($node_id)->children()->column(),
+                [$node_id]
+            );
         }
 
-        $itemCount = count($arrItems[$parent_id]);
+        $rows = self::find()
+            ->select('id, name, depth')
+            ->where(['NOT IN', 'id', $children])
+            ->orderBy('tree, lft, position')
+            ->all();
 
-        for ($i = 0; $i < $itemCount; $i++) {
-//            if ($arrItems[$parent_id][$i]['company_count'] > 0) {
-//                $label = $arrItems[$parent_id][$i]['name'] . ' <span class="badge badge-secondary">' . $arrItems[$parent_id][$i]['company_count'] . '</span>';
-//                $url   = Url::to(['company/index/',
-//                    'CompanySearch' => [
-//                        'rubric_id' => $arrItems[$parent_id][$i]['id'],
-//                    ],
-//                ]);
-//            } else {
-//                $label = null;
-//                $url   = null;
-//            }
+        $return = [];
 
-            $label = $arrItems[$parent_id][$i]['name'] . ' <span class="badge badge-secondary">' . $arrItems[$parent_id][$i]['company_count'] . '</span>';
-            $url   = Url::to(['company/index/',
-                'CompanySearch' => [
-                    'rubric_id' => $arrItems[$parent_id][$i]['id'],
-                ],
-            ]);
-
-            $result[] = [
-                'company_count' => $arrItems[$parent_id][$i]['company_count'],
-                'label'         => $label,
-                'url'           => $url,
-                'linkOptions'   => ['title' => $arrItems[$parent_id][$i]['name']],
-                'items'         => self::viewMenuItems($arrItems[$parent_id][$i]['id']),
-                'options'       => ['class' => $arrItems[$parent_id][$i]['class']],
-            ];
+        foreach ($rows as $row) {
+            $return[$row->id] = str_repeat('-', $row->depth) . ' ' . $row->name;
         }
 
+        return $return;
+    }
 
-        return $result;
+    /**
+     * Creates data provider instance with search query applied
+     *
+     * @param array $params
+     *
+     * @return ActiveDataProvider
+     */
+    public function search($params)
+    {
+        $query = Rubric::find();
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
+
+        $this->load($params);
+
+        if (!$this->validate()) {
+            // uncomment the following line if you do not want to return any records when validation fails
+            // $query->where('0=1');
+            return $dataProvider;
+        }
+
+        // grid filtering conditions
+        $query->andFilterWhere([
+            'id'    => $this->id,
+            'tree'  => $this->tree,
+            'lft'   => $this->lft,
+            'rgt'   => $this->rgt,
+            'depth' => $this->depth,
+        ]);
+
+        $query->andFilterWhere(['ilike', 'name', $this->name]);
+
+        return $dataProvider;
     }
 }

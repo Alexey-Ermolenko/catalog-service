@@ -4,10 +4,7 @@ namespace frontend\controllers;
 
 use Yii;
 use common\models\Company;
-use app\models\CompanySearch;
-use frontend\controllers\AppController;
 use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
 
 /**
  * CompanyController implements the CRUD actions for Company model.
@@ -15,27 +12,12 @@ use yii\filters\VerbFilter;
 class CompanyController extends AppController
 {
     /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'delete' => ['POST'],
-                ],
-            ],
-        ];
-    }
-
-    /**
      * Lists all Company models.
      * @return mixed
      */
     public function actionIndex()
     {
-        $searchModel = new CompanySearch();
+        $searchModel = new Company();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         return $this->render('index', [
@@ -52,8 +34,11 @@ class CompanyController extends AppController
      */
     public function actionView($id)
     {
+        $model = $this->findModel($id);
+
+
         return $this->render('view', [
-            'model' => $this->findModel($id),
+            'model' => $model,
         ]);
     }
 

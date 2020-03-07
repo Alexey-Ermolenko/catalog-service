@@ -5,13 +5,13 @@ use yii\helpers\Html;
 use yii\widgets\LinkPager;
 use yii\widgets\LinkSorter;
 use yii\widgets\ListView;
-use yii\widgets\Menu;
 use yii\widgets\Pjax;
+
 /* @var $this yii\web\View */
-/* @var $searchModel app\models\CompanySearch */
+/* @var $searchModel common\models\Company */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('app', 'Companies');
+$this->title                   = Yii::t('app', 'Companies');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="container-fluid">
@@ -35,14 +35,34 @@ $this->params['breadcrumbs'][] = $this->title;
                 <?php Pjax::end(); ?>
             </div>
             <div class="col-xs-6 col-md-4">
-                <?= yii\helpers\Html::a('Все рубрики', ["/company"]) ?>
-                <?= Menu::widget([
-                    'options'         => ['class' => 'clearfix menu', 'id' => 'main-menu'],
-                    'encodeLabels'    => false,
-                    'activateParents' => true,
-                    'activeCssClass'  => 'current-menu-item',
-                    'items'           => Rubric::viewMenuItems(),
-                ]);
+                <?= Html::a('Все рубрики', ["/company"]) ?>
+                <?php
+                $rubrics = Rubric::find()->addOrderBy('lft')->all();
+                $depth   = 0;
+
+                foreach ($rubrics as $n => $rubric) {
+                    if ($rubric->depth == $depth) {
+                        echo Html::endTag('li') . "\n";
+                    } elseif ($rubric->depth > $depth) {
+                        echo Html::beginTag('ul') . "\n";
+                    } else {
+                        echo Html::endTag('li') . "\n";
+
+                        for ($i = $depth - $rubric->depth; $i; $i--) {
+                            echo Html::endTag('ul') . "\n";
+                            echo Html::endTag('li') . "\n";
+                        }
+                    }
+
+                    echo Html::beginTag('li');
+                    echo Html::a($rubric->name, ["index?Company[rubric_id]=" . $rubric->id]);
+                    $depth = $rubric->depth;
+                }
+
+                for ($i = $depth; $i; $i--) {
+                    echo Html::endTag('li') . "\n";
+                    echo Html::endTag('ul') . "\n";
+                }
                 ?>
             </div>
         </div>

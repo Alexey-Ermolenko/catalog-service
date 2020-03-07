@@ -2,9 +2,6 @@
 
 namespace api\modules\v1\controllers;
 
-
-use app\models\RubricSearch;
-use common\models\base\Rubric;
 use yii\rest\ActiveController;
 use yii\web\Response;
 
