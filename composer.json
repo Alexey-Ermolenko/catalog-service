@@ -21,7 +21,8 @@
         "creocoder/yii2-nested-sets": "^0.9.0",
         "laker-ls/yii2-nested-set-menu": "~2.2.0",
         "2amigos/yii2-google-maps-library": "*",
-        "la-haute-societe/yii2-save-relations-behavior": "*"
+        "la-haute-societe/yii2-save-relations-behavior": "*",
+        "ext-json": "*"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
